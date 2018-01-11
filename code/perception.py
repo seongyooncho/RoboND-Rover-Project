@@ -75,7 +75,16 @@ def perspect_transform(img, src, dst):
     M = cv2.getPerspectiveTransform(src, dst)
     warped = cv2.warpPerspective(img, M, (img.shape[1], img.shape[0]))# keep same size as input image
     
+    # mask with angle
     mask = cv2.warpPerspective(np.ones_like(img[:, :, 0]), M, (img.shape[1], img.shape[0]))
+    
+    # mask with radius
+    radius = 120
+    Y, X = np.ogrid[:img.shape[0], :img.shape[1]]
+    dist_from_center = np.sqrt((X - img.shape[1]/2)**2 + (Y-img.shape[0])**2)
+
+    mask = mask & (dist_from_center <= radius)
+
     return warped, mask
 
 def find_rocks(img, levels=(110, 110, 50)):
@@ -108,6 +117,7 @@ def perception_step(Rover):
 
     # 3) Apply color threshold to identify navigable terrain/obstacles/rock samples
     threshed = color_thresh(warped)
+    threshed = threshed * mask
     obs_map = np.absolute(np.float32(threshed) - 1) * mask
     # 4) Update Rover.vision_image (this will be displayed on left side of screen)
         # Example: Rover.vision_image[:,:,0] = obstacle color-thresholded binary image
@@ -134,8 +144,11 @@ def perception_step(Rover):
 
     # 8) Convert rover-centric pixel positions to polar coordinates
     dist, angles = to_polar_coords(xpix, ypix)
+		# Extract angles shorter than 40 meters in distance 
+    angles = np.extract(dist < 40, angles)
     # Update Rover pixel distances and angles
     Rover.nav_angles = angles
+
         # Rover.nav_dists = rover_centric_pixel_distances
         # Rover.nav_angles = rover_centric_angles
 
