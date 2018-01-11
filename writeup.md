@@ -21,7 +21,7 @@
 
 [//]: # (Image References)
 
-[image1]: ./misc/rover_image.jpg
+[image1]: ./misc/nb_perspect_transform.png
 [image2]: ./calibration_images/example_grid1.jpg
 [image3]: ./calibration_images/example_rock1.jpg
 
