@@ -22,7 +22,7 @@
 [//]: # (Image References)
 
 [image1]: ./misc/nb_perspect_transform.jpg
-[image2]: ./calibration_images/example_grid1.jpg
+[image2]: ./misc/nb_output.png
 [image3]: ./calibration_images/example_rock1.jpg
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/916/view) Points
@@ -61,23 +61,39 @@ mean_dir = np.mean(angles)
 For rest of the things, I've followed **the walkthrough** and it performed quite well.
 
 #### 1. Populate the `process_image()` function with the appropriate analysis steps to map pixels identifying navigable terrain, obstacles and rock samples into a worldmap.  Run `process_image()` on your test data using the `moviepy` functions provided to create video output of your result.
-I've followed **the walkthrough** and it performed quite well. The result is as below.
+I've followed **the walkthrough** and it performed quite well. The final result looks like this.
 
-<video width="960" height="540" controls>
-  <source src="./output/test_mapping.mp4" type="video/mp4">
-</video>
+![alt text][image2]
+
 
 ### Autonomous Navigation and Mapping
 
 #### 1. Fill in the `perception_step()` (at the bottom of the `perception.py` script) and `decision_step()` (in `decision.py`) functions in the autonomous mapping scripts and an explanation is provided in the writeup of how and why these functions were modified as they were.
 
+#### `perception_step()`
+I have multiplied mask to `color_thresh()` result to include pixels within 120 meters only.
+```python
+threshed = color_thresh(warped)
+threshed = threshed * mask
+```
+Before updating rover angles, I have extracted angles within 40 meters.
+```python
+dist, angles = to_polar_coords(xpix, ypix)
+# Extract angles shorter than 40 meters in distance
+angles = np.extract(dist < 40, angles)
+# Update Rover pixel distances and angles
+Rover.nav_angles = angles
+```
+For the rest of the part, I followed steps on **the walkthrough**.
 
 #### 2. Launching in autonomous mode your rover can navigate and map autonomously.  Explain your results and how you might improve them in your writeup.  
 
 **Note: running the simulator with different choices of resolution and graphics quality may produce different results, particularly on different machines!  Make a note of your simulator settings (resolution and graphics quality set on launch) and frames per second (FPS output to terminal by `drive_rover.py`) in your writeup when you submit the project so your reviewer can reproduce your results.**
 
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
+With following **the walkthrough**, I could achieve around 60% of fidelity. Here are some issues I've tried to improve.
 
+#### Increase fidelity
+Fidelity of `color_thresh()`ed result is decreased in proportion to distance. So I have decided to set threshold at appropriate distance. After several simulations, 120 meters seemed fine. If the threshold is to low, the rover couldn't find any rock samples. I think fidelity can be increased if I could apply weights by distance, rather just applying threshold.  
 
-
-![alt text][image3]
+#### Prevent from sticking into rocks
+Most of the time, the rover could go well. But if there are small rocks just in front of it, the rover sometimes just go straight and get stuck. To prevent this from happening, the rover should focus on near view. So I've filtered out all the navigable angles farther than 40 meters.
