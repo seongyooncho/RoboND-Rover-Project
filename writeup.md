@@ -37,14 +37,36 @@ You're reading it!
 
 ### Notebook Analysis
 #### 1. Run the functions provided in the notebook on test images (first with the test data provided, next on data you have recorded). Add/modify functions to allow for color selection of obstacles and rock samples.
-Here is an example of how to include an image in your writeup.
+
+##### Perspective transform
+I have modified `perspect_trasform()` to return mask along with warped image following **the walkthrough**. Because precision of warped image is reduced in proportion to distance, I've decided to clip it with radius of 120. It gives higher fidelity afterwards.
+```python
+# mask with radius
+radius = 120
+Y, X = np.ogrid[:img.shape[0], :img.shape[1]]
+dist_from_center = np.sqrt((X - img.shape[1]/2)**2 + (Y-img.shape[0])**2)
+mask = mask & (dist_from_center <= radius)
+```
 
 ![alt text][image1]
 
-#### 1. Populate the `process_image()` function with the appropriate analysis steps to map pixels identifying navigable terrain, obstacles and rock samples into a worldmap.  Run `process_image()` on your test data using the `moviepy` functions provided to create video output of your result.
-And another!
+##### Coordinate transformation
+I've only used navigable angles with shorter than 40 meters in distance to decide where to head. It gives better steering in case of avoiding obstacles.
+```python
+# Extract angles with shorter than 40 meters in distance
+angles = np.extract(dist < 40, angles)
+mean_dir = np.mean(angles)
+```
 
-![alt text][image2]
+For rest of the things, I've followed **the walkthrough** and it performed quite well.
+
+#### 1. Populate the `process_image()` function with the appropriate analysis steps to map pixels identifying navigable terrain, obstacles and rock samples into a worldmap.  Run `process_image()` on your test data using the `moviepy` functions provided to create video output of your result.
+I've followed **the walkthrough** and it performed quite well. The result is as below.
+
+<video width="960" height="540" controls>
+  <source src="./output/test_mapping.mp4" type="video/mp4">
+</video>
+
 ### Autonomous Navigation and Mapping
 
 #### 1. Fill in the `perception_step()` (at the bottom of the `perception.py` script) and `decision_step()` (in `decision.py`) functions in the autonomous mapping scripts and an explanation is provided in the writeup of how and why these functions were modified as they were.
